@@ -1,0 +1,71 @@
+﻿
+---Dax Queries
+
+
+---Q1. Products refund by ProductName 
+
+DEFINE
+MEASURE Customers[Total Refund] = SUM(Sales[Revenue])
+MEASURE Customers[Total Qty] = SUM(Sales[RevenueQty])
+EVALUATE
+SUMMARIZECOLUMNS(
+    Products[Division Name],
+    Products[Product Name],
+    Products[Product Type],
+    KEEPFILTERS( FILTER( ALL( Sales[Revenue] ), Sales[Revenue] < 0 )),
+    "Total Refund", [Total Refund],
+    "Total Qty", [Total Qty]
+)
+ORDER BY 
+    Products[Division Name],
+    Products[Product Name],
+    Products[Product Type]
+
+
+---Q2. Company's Revenue by region without the biggest customers- customerSK 100 ('Debra') and CustomerSK 110 ('Jacquli')
+
+EVALUATE
+SUMMARIZECOLUMNS(
+    Customers[Region],
+    KEEPFILTERS( FILTER( ALL( Customers[CustomerSK] ), NOT( Customers[CustomerSK] IN {100,110} ))),
+    "Tot Revenue", SUM(Sales[Revenue])
+)
+ORDER BY 
+    Customers[Region] ASC
+    
+		----Total Revenue to compare
+		
+		EVALUATE SUMMARIZE(Sales,
+    	Customers[Region],
+    	"Tot Revenue", SUM(Sales[Revenue])
+		)
+		ORDER BY 
+		Customers[Region] ASC
+
+
+    
+----Q3.Revenue by Product Name
+    
+    EVALUATE
+SUMMARIZECOLUMNS(
+    Products[Division Name],
+    Products[Product Name],
+    "Tot Revenue", SUM(Sales[Revenue])
+)
+ORDER BY 
+    Products[Division Name] ASC
+    
+    
+-----Dim_Time
+
+EVALUATE(
+SELECTCOLUMNS (
+ADDCOLUMNS (GENERATESERIES ( 1, 86400, 1 ),"TimeValue", TIME(0,0,0) + [Value] / (24 * 60 * 60)),
+"Time", FORMAT([TimeValue],"hh:mm:ss"),
+"Hour", HOUR ( [TimeValue] ),
+"Minute", MINUTE ( [TimeValue] ),
+"Second",SECOND([TimeValue])
+))
+
+
+
